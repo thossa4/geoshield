@@ -94,15 +94,19 @@ def _fetch_elevation_m(lon: float, lat: float, timeout: int) -> tuple[float | No
 
     Retries a few times on transient failure before giving up. Found
     live during development: under the concurrent load this module's own
-    neighborhood grid-sampling generates (up to 8 parallel requests, times
-    several addresses run back-to-back), EPQS occasionally returns an
-    empty body. That raised an uncaught ``json.JSONDecodeError`` — a
-    ``ValueError`` subclass, NOT covered by the
-    ``URLError``/``HTTPError``/``TimeoutError``/``OSError`` tuple this
-    function already caught — which crashed the whole caller rather than
-    degrading to ``data_available: False``. Both the missing exception
-    type and the lack of any retry are fixed here together, since a
-    single transient blip under load was otherwise fatal.
+    neighborhood grid-sampling generates (originally up to 8 parallel
+    requests, times several addresses run back-to-back), EPQS
+    occasionally returns an empty body. That raised an uncaught
+    ``json.JSONDecodeError`` — a ``ValueError`` subclass, NOT covered by
+    the ``URLError``/``HTTPError``/``TimeoutError``/``OSError`` tuple
+    this function already caught — which crashed the whole caller rather
+    than degrading to ``data_available: False``. The missing exception
+    type and the lack of any retry were fixed together, since a single
+    transient blip under load was otherwise fatal. Retries alone didn't
+    fully eliminate failures under the full 3-address regression suite's
+    load, though — ``get_neighborhood_elevation_stats``'s ``max_workers``
+    default was also lowered (8 → 3) to reduce the burst load on EPQS in
+    the first place, rather than just retrying around it.
     """
     params = {"x": lon, "y": lat, "units": "Meters", "wkid": 4326, "includeDate": "false"}
     url = f"{EPQS_URL}?{urllib.parse.urlencode(params)}"
@@ -143,7 +147,7 @@ def get_neighborhood_elevation_stats(
     radius_m: float = DEFAULT_NEIGHBORHOOD_RADIUS_M,
     step_m: float = DEFAULT_NEIGHBORHOOD_STEP_M,
     timeout: int = 20,
-    max_workers: int = 8,
+    max_workers: int = 3,
 ) -> dict:
     """Grid-sample USGS 3DEP elevation around a point and report where
     the center point sits relative to its sampled surroundings.
