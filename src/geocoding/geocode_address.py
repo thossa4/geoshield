@@ -43,9 +43,10 @@ def geocode(address: str, timeout: int = 15) -> dict:
     requested_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        req = urllib.request.Request(url, headers={"User-Agent": "GeoShield-Prototype/0.1"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             payload = json.load(resp)
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:
         raise RuntimeError(f"Census geocoder request failed: {exc}") from exc
 
     matches = payload.get("result", {}).get("addressMatches", [])
