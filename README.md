@@ -75,14 +75,19 @@ runs in milliseconds. It complements, not replaces, the regression
 suite below.
 
 Runs the live pipeline (real network calls to FEMA/USGS/Census, no
-mocking) against three real reference addresses recorded in
+mocking) against four real reference addresses recorded in
 `tests/reference_properties/properties.py`: a Zone X property in
 Baton Rouge, a moderate-relative-elevation SFHA property in Lakeview
-(New Orleans), and a notably-low-relative-elevation SFHA property in
+(New Orleans), a notably-low-relative-elevation SFHA property in
 Gentilly (New Orleans) that exercises the
-`TERRAIN_LOW_RELATIVE_ELEVATION_IN_SFHA` escalation rule. Takes roughly
-45-60 seconds; a failure can mean either a real regression or a
-transient upstream outage — check which before assuming the code broke.
+`TERRAIN_LOW_RELATIVE_ELEVATION_IN_SFHA` escalation rule, and Grand
+Isle Town Hall — Louisiana's only inhabited barrier island, the pilot's
+first genuinely coastal (not just New-Orleans-metro) address, covering
+FEMA Zone VE and correctly-not-applicable EBR-specific modules outside
+East Baton Rouge Parish. Takes roughly 2-8 minutes depending on how
+many NOAA weather-station candidates a remote address requires; a
+failure can mean either a real regression or a transient upstream
+outage — check which before assuming the code broke.
 
 ## Folder structure
 

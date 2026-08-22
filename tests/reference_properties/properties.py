@@ -154,4 +154,70 @@ REFERENCE_PROPERTIES = [
             "DRAINAGE_NO_MAPPED_FEATURE_NEARBY",
         },
     },
+    {
+        "name": "grand_isle_coastal_ve_zone",
+        "address": "170 Ludwig Lane, Grand Isle, LA 70358",
+        "description": (
+            "Grand Isle Town Hall — Louisiana's only inhabited barrier "
+            "island, genuinely coastal (not just New-Orleans-metro) pilot "
+            "geography. FEMA Zone VE (coastal high-hazard/wave-action "
+            "zone, distinct from AE), sub-meter elevation, well outside "
+            "East Baton Rouge Parish so the EBR-specific drainage/parcel "
+            "modules should correctly report not-applicable rather than "
+            "an error. Also a real, live-observed case where NOAA's "
+            "climate-normals search finds only one candidate station "
+            "within its widest search radius and that station lacks "
+            "usable TMAX data — a genuine remote-geography coverage gap, "
+            "not a code bug (see climate_indicators.py)."
+        ),
+        "expected": {
+            "fema_zone": "VE",
+            "special_flood_hazard_area": True,
+            "floodway_flag": False,
+            "ground_elevation_m_range": (0.2, 0.9),
+            "elevation_percentile_rank_range": (40.0, 80.0),
+            "land_cover_class_code": 22,
+            "hurricane_risk_rating": "Very High",
+            "drainage_data_available": True,
+            "nearest_stream_or_river_m_range": (200.0, 320.0),
+            "nearest_canal_or_ditch_m_range": (120.0, 230.0),
+            "nearest_waterbody_m_range": (260.0, 360.0),
+            "ebr_drainage_data_available": False,
+            "parcel_data_available": False,
+            "flood_context_concern_level": "Elevated concern",
+            "wind_resilience_concern_level": "High concern",
+            "drainage_context_concern_level": "Moderate concern",
+            # heat_surface_concern_level deliberately NOT asserted: it
+            # turns on tree_canopy_pct_buffer_250m < 10 with an observed
+            # value of 8.0 — only 2 points of margin on a grid-sampled
+            # mean — the same run-to-run fragility this file already
+            # documents for gentilly's elevation-percentile threshold.
+            "expected_acs": {
+                "acs_total_population": 623.0,
+                # Real ACS 5-year suppression/no-estimate case for this
+                # small, remote census tract — not a pipeline bug.
+                "acs_median_household_income_usd": None,
+                "acs_owner_occupied_pct": 87.3,
+            },
+        },
+        "expected_rule_ids_present": {
+            "FLOOD_SFHA",
+            "TERRAIN_NEIGHBORHOOD_CONTEXT",
+            "WIND_REGIONAL_HAZARD_CONTEXT",
+        },
+        "expected_rule_ids_absent": {
+            "FLOOD_ZONE_X_CONTEXT",
+            "FLOOD_FLOODWAY",
+            "TERRAIN_LOW_RELATIVE_ELEVATION_IN_SFHA",
+            # Nearest mapped water/drainage feature is 176.6m — genuinely
+            # between rules_engine.py's two drainage thresholds (<=100m
+            # fires DRAINAGE_NEAR_MAPPED_WATER, "no feature found at all"
+            # fires DRAINAGE_NO_MAPPED_FEATURE_NEARBY): neither rule
+            # should fire for this property, a real middle-ground case,
+            # not a gap in the rule logic.
+            "DRAINAGE_NEAR_MAPPED_WATER",
+            "DRAINAGE_NO_MAPPED_FEATURE_NEARBY",
+            "DRAINAGE_NEAR_LEVEE",
+        },
+    },
 ]
