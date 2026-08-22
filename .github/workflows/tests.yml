@@ -16,6 +16,11 @@ jobs:
           python-version: "3.12"
       # No requirements.txt — every module here uses only the Python
       # standard library (urllib, json, math, ...), by design.
+      - name: Run unit tests (fast, no network)
+        run: python -m unittest discover -s tests/unit -v
+        # Pure-logic tests for geo_utils/module_ratings/rules_engine/
+        # address-matching — runs in milliseconds, fails fast on a logic
+        # bug before spending minutes on the live regression suite below.
       - name: Run regression suite
         run: python -m unittest tests.regression.test_reference_properties -v
         # These tests make real live calls to FEMA/USGS/NOAA/EBR Parish

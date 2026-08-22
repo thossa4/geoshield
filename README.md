@@ -59,12 +59,20 @@ the full Home Passport HTML report to `reports/{property_id}.html`
 see `docs/methodology_scoring.md` and Phase 5's "avoid a single overall
 score" rule.
 
-### Run the regression tests
+### Run the tests
 
 ```
 cd geoshield
-python -m unittest tests.regression.test_reference_properties -v
+python -m unittest discover -s tests/unit -v      # fast: pure logic, no network, <10ms
+python -m unittest tests.regression.test_reference_properties -v   # slow: live network calls
 ```
+
+The unit suite (`tests/unit/`) covers pure-logic functions with no
+network calls — `geo_utils.py`'s geometry math, `module_ratings.py`'s
+concern-rating thresholds, `rules_engine.py`'s recommendation
+conditions, and the parcel module's address-matching safety logic — and
+runs in milliseconds. It complements, not replaces, the regression
+suite below.
 
 Runs the live pipeline (real network calls to FEMA/USGS/Census, no
 mocking) against three real reference addresses recorded in
