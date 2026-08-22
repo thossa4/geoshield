@@ -44,7 +44,8 @@ def _query_layer(layer_id: int, lon: float, lat: float, out_fields: str, timeout
         "f": "json",
     }
     url = f"{NFHL_BASE}/{layer_id}/query?{urllib.parse.urlencode(params)}"
-    with urllib.request.urlopen(url, timeout=timeout) as resp:
+    req = urllib.request.Request(url, headers={"User-Agent": "GeoShield-Prototype/0.1"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         payload = json.load(resp)
     if "error" in payload:
         raise RuntimeError(f"NFHL layer {layer_id} query error: {payload['error']}")

@@ -101,12 +101,18 @@ def _fetch_elevation_m(lon: float, lat: float, timeout: int) -> tuple[float | No
     the ``URLError``/``HTTPError``/``TimeoutError``/``OSError`` tuple
     this function already caught — which crashed the whole caller rather
     than degrading to ``data_available: False``. The missing exception
-    type and the lack of any retry were fixed together, since a single
-    transient blip under load was otherwise fatal. Retries alone didn't
-    fully eliminate failures under the full 3-address regression suite's
-    load, though — ``get_neighborhood_elevation_stats``'s ``max_workers``
-    default was also lowered (8 → 3) to reduce the burst load on EPQS in
-    the first place, rather than just retrying around it.
+    type and the lack of any retry were fixed together.
+
+    Concurrency was also lowered (``max_workers`` 8 → 3) but that alone
+    didn't fully eliminate failures in GitHub Actions CI specifically —
+    investigating a near-identical, confirmed-real bug in
+    geocoding/geocode_address.py (a request with no ``User-Agent``
+    header failing reliably on CI's shared runner IPs, never once
+    locally) surfaced the SAME gap here: this function's request had no
+    ``User-Agent`` either, unlike every other indicator module in this
+    codebase. Fixed to match. This is very plausibly the dominant cause
+    of the CI-specific flakiness chased across several commits this
+    session, not primarily request volume/concurrency.
     """
     params = {"x": lon, "y": lat, "units": "Meters", "wkid": 4326, "includeDate": "false"}
     url = f"{EPQS_URL}?{urllib.parse.urlencode(params)}"
@@ -114,7 +120,8 @@ def _fetch_elevation_m(lon: float, lat: float, timeout: int) -> tuple[float | No
     last_error: str | None = None
     for attempt in range(EPQS_RETRY_ATTEMPTS):
         try:
-            with urllib.request.urlopen(url, timeout=timeout) as resp:
+            req = urllib.request.Request(url, headers={"User-Agent": "GeoShield-Prototype/0.1"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
                 payload = json.load(resp)
             break
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:

@@ -96,7 +96,8 @@ def _get_feature_info_at_xy(layer: str, x: float, y: float, timeout: int, half_e
         "info_format": "application/json",
     }
     url = f"{WMS_URL}?{urllib.parse.urlencode(params)}"
-    with urllib.request.urlopen(url, timeout=timeout) as resp:
+    req = urllib.request.Request(url, headers={"User-Agent": "GeoShield-Prototype/0.1"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         payload = json.load(resp)
     features = payload.get("features", [])
     if not features:
