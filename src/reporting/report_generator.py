@@ -85,11 +85,41 @@ def _section_property_identity(record: dict) -> str:
         <tr><th>Report date</th><td>{_esc(record.get('analysis_date_utc'))}</td></tr>
         <tr><th>Report template version</th><td>{_esc(REPORT_TEMPLATE_VERSION)}</td></tr>
       </table>
-      <p class="note">Analysis geometry: single geocoded point only — no
-      parcel polygon lookup is implemented in this prototype (Phase 3,
-      Step 3.2). Do not assume this point represents an exact building
-      footprint.</p>
+      {_section_parcel_identity(record)}
+      <p class="note">Every indicator elsewhere in this report is still
+      queried by the single geocoded point above, not a parcel boundary
+      — only the parcel identification directly above (East Baton Rouge
+      Parish addresses only) uses parcel geometry. Do not assume the
+      point represents an exact building footprint.</p>
     </section>
+    """
+
+
+def _section_parcel_identity(record: dict) -> str:
+    if record.get("parcel_data_available") is not True:
+        return ""
+    if record.get("parcel_match_quality") == "no_confident_match":
+        return """
+        <p class="note"><strong>Parcel: not confidently identified.</strong>
+        This point is within East Baton Rouge Parish, but no single tax
+        parcel could be confidently matched — a nearby-but-unconfirmed
+        parcel is deliberately not shown rather than risking attribution
+        to the wrong property.</p>
+        """
+    return f"""
+    <table class="kv">
+      <tr><th>Parcel ID (assessment #)</th><td>{_esc(record.get('parcel_id'))}</td></tr>
+      <tr><th>Parcel address on file</th><td>{_esc(record.get('parcel_physical_address'))}</td></tr>
+      <tr><th>Subdivision</th><td>{_esc(record.get('parcel_subdivision'))}</td></tr>
+      <tr><th>Parcel area</th><td>{_esc(record.get('parcel_area_sqft'))} sq ft</td></tr>
+      <tr><th>Parish assessor flood zone</th><td>{_esc(record.get('parcel_flood_zone'))}</td></tr>
+      <tr><th>Match quality</th><td>{_esc(record.get('parcel_match_quality'))} ({_quality_badge(record.get('parcel_quality_flag'))})</td></tr>
+    </table>
+    <p class="caveat">East Baton Rouge Parish tax parcel record — parcel
+    identification only, not a surveyed building footprint. The parish
+    assessor's flood zone above is separate from and not a substitute
+    for the FEMA NFHL flood-zone finding in Section 3; the two can
+    legitimately disagree.</p>
     """
 
 
@@ -317,7 +347,7 @@ def _section_programs(record: dict) -> str:
 
 def _section_data_sources(record: dict) -> str:
     sources = []
-    for key in ("_full_flood_response", "_full_terrain_response", "_full_landcover_response", "_full_drainage_response", "_full_ebr_drainage_response"):
+    for key in ("_full_parcel_response", "_full_flood_response", "_full_terrain_response", "_full_landcover_response", "_full_drainage_response", "_full_ebr_drainage_response"):
         resp = record.get(key)
         if resp:
             sources.append(resp)

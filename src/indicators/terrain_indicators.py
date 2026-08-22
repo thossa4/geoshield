@@ -26,6 +26,7 @@ import datetime
 import json
 import statistics
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -81,18 +82,43 @@ def get_terrain_indicators(lon: float, lat: float, timeout: int = 20) -> dict:
     }
 
 
+EPQS_RETRY_ATTEMPTS = 3
+EPQS_RETRY_BACKOFF_S = 0.5
+
+
 def _fetch_elevation_m(lon: float, lat: float, timeout: int) -> tuple[float | None, float | None, str | None]:
     """Fetch a single EPQS elevation value. Returns (elevation_m,
     resolution_m, error_message) — exactly one of elevation_m or
     error_message will be meaningfully set (both None means "no usable
-    value, but no request error either," e.g. the sentinel case)."""
+    value, but no request error either," e.g. the sentinel case).
+
+    Retries a few times on transient failure before giving up. Found
+    live during development: under the concurrent load this module's own
+    neighborhood grid-sampling generates (up to 8 parallel requests, times
+    several addresses run back-to-back), EPQS occasionally returns an
+    empty body. That raised an uncaught ``json.JSONDecodeError`` — a
+    ``ValueError`` subclass, NOT covered by the
+    ``URLError``/``HTTPError``/``TimeoutError``/``OSError`` tuple this
+    function already caught — which crashed the whole caller rather than
+    degrading to ``data_available: False``. Both the missing exception
+    type and the lack of any retry are fixed here together, since a
+    single transient blip under load was otherwise fatal.
+    """
     params = {"x": lon, "y": lat, "units": "Meters", "wkid": 4326, "includeDate": "false"}
     url = f"{EPQS_URL}?{urllib.parse.urlencode(params)}"
-    try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
-            payload = json.load(resp)
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
-        return None, None, str(exc)
+
+    last_error: str | None = None
+    for attempt in range(EPQS_RETRY_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(url, timeout=timeout) as resp:
+                payload = json.load(resp)
+            break
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:
+            last_error = str(exc)
+            if attempt < EPQS_RETRY_ATTEMPTS - 1:
+                time.sleep(EPQS_RETRY_BACKOFF_S * (attempt + 1))
+    else:
+        return None, None, last_error
 
     raw_value = payload.get("value")
     try:

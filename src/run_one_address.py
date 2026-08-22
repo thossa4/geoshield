@@ -55,6 +55,7 @@ SRC_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SRC_DIR))
 
 from geocoding.geocode_address import geocode  # noqa: E402
+from geocoding.ebr_parcel_lookup import get_parcel_context  # noqa: E402
 from indicators.flood_indicators import get_flood_indicators  # noqa: E402
 from indicators.terrain_indicators import get_terrain_indicators, get_neighborhood_elevation_stats  # noqa: E402
 from indicators.landcover_indicators import get_landcover_indicators, get_landcover_buffer_stats  # noqa: E402
@@ -145,6 +146,14 @@ FIELDNAMES = [
     "drainage_context_concern_level",
     "drainage_context_confidence",
     "module_ratings_version",
+    "parcel_data_available",
+    "parcel_match_quality",
+    "parcel_id",
+    "parcel_physical_address",
+    "parcel_subdivision",
+    "parcel_area_sqft",
+    "parcel_flood_zone",
+    "parcel_quality_flag",
 ]
 
 
@@ -216,6 +225,15 @@ def run_one_address(address: str, building_attributes: dict | None = None) -> di
         "drainage_context_confidence": None,
         "module_ratings_version": None,
         "module_ratings": None,
+        "parcel_data_available": None,
+        "parcel_match_quality": None,
+        "parcel_id": None,
+        "parcel_physical_address": None,
+        "parcel_subdivision": None,
+        "parcel_area_sqft": None,
+        "parcel_flood_zone": None,
+        "parcel_quality_flag": None,
+        "_full_parcel_response": None,
         "_full_flood_response": None,
         "_full_terrain_response": None,
         "_full_terrain_neighborhood_response": None,
@@ -238,6 +256,17 @@ def run_one_address(address: str, building_attributes: dict | None = None) -> di
         return record
 
     lon, lat = geo["longitude"], geo["latitude"]
+
+    parcel = get_parcel_context(lon, lat, geo["matched_address"])
+    record["parcel_data_available"] = parcel.get("data_available")
+    record["parcel_match_quality"] = parcel.get("match_quality")
+    record["parcel_id"] = parcel.get("parcel_id")
+    record["parcel_physical_address"] = parcel.get("parcel_physical_address")
+    record["parcel_subdivision"] = parcel.get("parcel_subdivision")
+    record["parcel_area_sqft"] = parcel.get("parcel_area_sqft")
+    record["parcel_flood_zone"] = parcel.get("parcel_flood_zone")
+    record["parcel_quality_flag"] = parcel.get("quality_flag")
+    record["_full_parcel_response"] = parcel
 
     flood = get_flood_indicators(lon, lat)
     record["flood_data_available"] = flood.get("data_available")

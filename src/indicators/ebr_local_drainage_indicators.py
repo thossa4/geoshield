@@ -70,8 +70,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from common.geo_utils import lonlat_to_webmercator, min_distance_to_paths, min_distance_to_polygon  # noqa: E402
+from common.ebr_parish import point_in_parish  # noqa: E402
 
-PARISH_BOUNDARY_URL = "https://maps.brla.gov/gis/rest/services/Governmental_Units/Parish_Boundary/MapServer/0/query"
 STORMWATER_CONVEYANCE_URL = (
     "https://utility.arcgis.com/usrsvcs/servers/de50e129067b480c808ec3552d7b2fc8"
     "/rest/services/Infrastructure_Secure/Stormwater_Asset/MapServer/1/query"
@@ -125,25 +125,6 @@ def _query(url: str, lon: float, lat: float, radius_m: float, timeout: int) -> l
     return payload.get("features", [])
 
 
-def _point_in_parish(lon: float, lat: float, timeout: int) -> bool:
-    params = {
-        "geometry": f"{lon},{lat}",
-        "geometryType": "esriGeometryPoint",
-        "inSR": 4326,
-        "spatialRel": "esriSpatialRelIntersects",
-        "outFields": "PARISH_NAME",
-        "returnGeometry": "false",
-        "f": "json",
-    }
-    url = f"{PARISH_BOUNDARY_URL}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers={"User-Agent": "GeoShield-Prototype/0.1"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        payload = json.load(resp)
-    if "error" in payload:
-        raise RuntimeError(str(payload["error"]))
-    return bool(payload.get("features"))
-
-
 def _nearest_asset(px: float, py: float, features: list[dict], id_field: str,
                     extra_fields: tuple[str, ...]) -> dict | None:
     best = None
@@ -184,7 +165,7 @@ def get_ebr_local_drainage_context(lon: float, lat: float, radius_m: float = DEF
     checked_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     try:
-        in_parish = _point_in_parish(lon, lat, timeout)
+        in_parish = point_in_parish(lon, lat, timeout)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, RuntimeError) as exc:
         return {
             "source_id": SOURCE_ID,

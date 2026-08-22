@@ -82,6 +82,16 @@ def _make_test(prop: dict):
                     record.get(concern_key), expected[concern_key],
                     f"{prop['name']}: {concern_key} mismatch",
                 )
+        if "parcel_data_available" in expected:
+            self.assertEqual(
+                record.get("parcel_data_available"), expected["parcel_data_available"],
+                f"{prop['name']}: parcel_data_available mismatch",
+            )
+        if "parcel_match_quality" in expected:
+            self.assertEqual(
+                record.get("parcel_match_quality"), expected["parcel_match_quality"],
+                f"{prop['name']}: parcel_match_quality mismatch",
+            )
 
         for field_key, bounds_key in [
             ("ground_elevation_m", "ground_elevation_m_range"),

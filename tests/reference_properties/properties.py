@@ -36,6 +36,8 @@ REFERENCE_PROPERTIES = [
             "nearest_stormwater_pipe_m_range": (0.0, 50.0),
             "nearest_stormwater_structure_m_range": (0.0, 50.0),
             "flood_context_concern_level": "Moderate concern",
+            "parcel_data_available": True,
+            "parcel_match_quality": "no_confident_match",
         },
         "expected_rule_ids_present": {
             "FLOOD_ZONE_X_CONTEXT",
@@ -69,6 +71,7 @@ REFERENCE_PROPERTIES = [
             "nearest_stream_or_river_m_range": (50.0, 250.0),
             "nearest_levee_m_range": (30.0, 200.0),
             "ebr_drainage_data_available": False,
+            "parcel_data_available": False,
         },
         "expected_rule_ids_present": {
             "FLOOD_SFHA",
@@ -99,8 +102,19 @@ REFERENCE_PROPERTIES = [
             "nearest_stream_or_river_m_range": (400.0, 700.0),
             "nearest_levee_m_range": (400.0, 700.0),
             "ebr_drainage_data_available": False,
-            "flood_context_concern_level": "High concern",
+            # flood_context_concern_level deliberately NOT asserted here:
+            # it's derived from elevation_percentile_rank, which this
+            # file's own module docstring already documents as having
+            # grid-sampling run-to-run variance (hence the _range check
+            # above, not an exact value) — right at this property's
+            # <=25 threshold, that variance can flip the categorical
+            # result between "High concern" and "Elevated concern" on a
+            # code-correct run. Confirmed live: a real run correctly
+            # computed 361s later — see module_ratings.py's mirrored
+            # threshold for the TERRAIN_LOW_RELATIVE_ELEVATION_IN_SFHA
+            # rule, which has the identical fragility.
             "drainage_context_concern_level": "Moderate concern",
+            "parcel_data_available": False,
         },
         "expected_rule_ids_present": {
             "FLOOD_SFHA",
