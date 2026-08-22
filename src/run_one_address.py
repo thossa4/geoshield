@@ -56,6 +56,7 @@ sys.path.insert(0, str(SRC_DIR))
 
 from geocoding.geocode_address import geocode  # noqa: E402
 from geocoding.ebr_parcel_lookup import get_parcel_context  # noqa: E402
+from indicators.census_acs_indicators import get_acs_context  # noqa: E402
 from indicators.flood_indicators import get_flood_indicators  # noqa: E402
 from indicators.terrain_indicators import get_terrain_indicators, get_neighborhood_elevation_stats  # noqa: E402
 from indicators.landcover_indicators import get_landcover_indicators, get_landcover_buffer_stats  # noqa: E402
@@ -154,6 +155,12 @@ FIELDNAMES = [
     "parcel_area_sqft",
     "parcel_flood_zone",
     "parcel_quality_flag",
+    "acs_data_available",
+    "acs_census_tract_geoid",
+    "acs_total_population",
+    "acs_median_household_income_usd",
+    "acs_owner_occupied_pct",
+    "acs_quality_flag",
 ]
 
 
@@ -233,7 +240,14 @@ def run_one_address(address: str, building_attributes: dict | None = None) -> di
         "parcel_area_sqft": None,
         "parcel_flood_zone": None,
         "parcel_quality_flag": None,
+        "acs_data_available": None,
+        "acs_census_tract_geoid": None,
+        "acs_total_population": None,
+        "acs_median_household_income_usd": None,
+        "acs_owner_occupied_pct": None,
+        "acs_quality_flag": None,
         "_full_parcel_response": None,
+        "_full_acs_response": None,
         "_full_flood_response": None,
         "_full_terrain_response": None,
         "_full_terrain_neighborhood_response": None,
@@ -267,6 +281,15 @@ def run_one_address(address: str, building_attributes: dict | None = None) -> di
     record["parcel_flood_zone"] = parcel.get("parcel_flood_zone")
     record["parcel_quality_flag"] = parcel.get("quality_flag")
     record["_full_parcel_response"] = parcel
+
+    acs = get_acs_context(lon, lat)
+    record["acs_data_available"] = acs.get("data_available")
+    record["acs_census_tract_geoid"] = acs.get("census_tract_geoid")
+    record["acs_total_population"] = acs.get("total_population")
+    record["acs_median_household_income_usd"] = acs.get("median_household_income_usd")
+    record["acs_owner_occupied_pct"] = acs.get("owner_occupied_pct")
+    record["acs_quality_flag"] = acs.get("quality_flag")
+    record["_full_acs_response"] = acs
 
     flood = get_flood_indicators(lon, lat)
     record["flood_data_available"] = flood.get("data_available")

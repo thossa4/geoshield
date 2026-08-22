@@ -15,6 +15,7 @@ technical report.
 | 6 | "Get a prioritized action plan." | Deterministic, versioned recommendation rules (Phase 6) triggered by specific findings; each action tagged with evidence, priority, cost band, confidence. | Recommendations are not a substitute for a licensed professional's inspection or judgment. | — |
 | 7 | "Connect with a verified professional." | Provider passed the verification checklist in Phase 10, Step 10.2 (license, insurance, service area, agreement to standards). | "Verified" describes documentation on file, not a guarantee of work quality; providers cannot pay to alter GeoShield scores. | — |
 | 8 | "A state/federal program may be worth checking." | Rules-based flag referencing an official, currently-linked program page with a last-checked date. | Not an eligibility determination or award guarantee. | — |
+| 9 | "See neighborhood housing and population context for this area." | Census ACS 5-Year Detailed Tables, census-tract level (`CENSUS_ACS_5YEAR` in `data_registry.csv`). | Not household- or individual-property-level data — every address in the same tract shares the identical figures. Not a hazard indicator and never a factor in any concern rating or recommendation. 5-year estimates carry sampling error and describe a multi-year period, not current-year conditions. | — |
 
 ## Rules for adding a claim
 

@@ -15,6 +15,7 @@ Run with:
 
 from __future__ import annotations
 
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -92,6 +93,15 @@ def _make_test(prop: dict):
                 record.get("parcel_match_quality"), expected["parcel_match_quality"],
                 f"{prop['name']}: parcel_match_quality mismatch",
             )
+        if os.environ.get("CENSUS_API_KEY"):
+            # ACS requires an optional key not stored as a CI secret;
+            # only checked when a developer actually has it set, so this
+            # never causes a false failure where it's deliberately absent.
+            for acs_key, acs_expected in prop.get("expected_acs", {}).items():
+                self.assertEqual(
+                    record.get(acs_key), acs_expected,
+                    f"{prop['name']}: {acs_key} mismatch (CENSUS_API_KEY was set)",
+                )
 
         for field_key, bounds_key in [
             ("ground_elevation_m", "ground_elevation_m_range"),

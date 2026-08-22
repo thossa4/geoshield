@@ -38,6 +38,15 @@ REFERENCE_PROPERTIES = [
             "flood_context_concern_level": "Moderate concern",
             "parcel_data_available": True,
             "parcel_match_quality": "no_confident_match",
+            # Only checked if CENSUS_API_KEY is set in the environment —
+            # it's an optional key not stored as a CI secret, so this is
+            # real coverage for a developer who has it set, without
+            # failing CI where it's deliberately absent.
+            "expected_acs": {
+                "acs_total_population": 3051.0,
+                "acs_median_household_income_usd": 52827.0,
+                "acs_owner_occupied_pct": 10.6,
+            },
         },
         "expected_rule_ids_present": {
             "FLOOD_ZONE_X_CONTEXT",
@@ -72,6 +81,11 @@ REFERENCE_PROPERTIES = [
             "nearest_levee_m_range": (30.0, 200.0),
             "ebr_drainage_data_available": False,
             "parcel_data_available": False,
+            "expected_acs": {
+                "acs_total_population": 2622.0,
+                "acs_median_household_income_usd": 103824.0,
+                "acs_owner_occupied_pct": 61.6,
+            },
         },
         "expected_rule_ids_present": {
             "FLOOD_SFHA",
@@ -115,6 +129,11 @@ REFERENCE_PROPERTIES = [
             # rule, which has the identical fragility.
             "drainage_context_concern_level": "Moderate concern",
             "parcel_data_available": False,
+            "expected_acs": {
+                "acs_total_population": 2439.0,
+                "acs_median_household_income_usd": 111563.0,
+                "acs_owner_occupied_pct": 80.0,
+            },
         },
         "expected_rule_ids_present": {
             "FLOOD_SFHA",

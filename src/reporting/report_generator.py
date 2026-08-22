@@ -91,7 +91,30 @@ def _section_property_identity(record: dict) -> str:
       — only the parcel identification directly above (East Baton Rouge
       Parish addresses only) uses parcel geometry. Do not assume the
       point represents an exact building footprint.</p>
+      {_section_acs_context(record)}
     </section>
+    """
+
+
+def _section_acs_context(record: dict) -> str:
+    if record.get("acs_data_available") is not True:
+        return ""
+    return f"""
+    <h3>Neighborhood Context (optional)</h3>
+    <table class="kv">
+      <tr><th>Census tract</th><td>{_esc(record.get('acs_census_tract_geoid'))}</td></tr>
+      <tr><th>Population (ACS 5-year estimate)</th><td>{_esc(record.get('acs_total_population'))}</td></tr>
+      <tr><th>Median household income (ACS 5-year estimate)</th><td>{_esc(record.get('acs_median_household_income_usd'))}</td></tr>
+      <tr><th>Owner-occupied housing</th><td>{_esc(record.get('acs_owner_occupied_pct'))}%</td></tr>
+      <tr><th>Data quality</th><td>{_quality_badge(record.get('acs_quality_flag'))}</td></tr>
+    </table>
+    <p class="caveat">Census-tract-level American Community Survey 5-year
+    estimate — not household- or individual-property-level data; every
+    address in this tract shares the identical figures. This is
+    neighborhood context only: it is not a hazard indicator and plays no
+    part in any concern rating or recommendation elsewhere in this
+    report. 5-year estimates carry sampling error and describe a
+    multi-year period, not current-year conditions.</p>
     """
 
 
@@ -347,7 +370,7 @@ def _section_programs(record: dict) -> str:
 
 def _section_data_sources(record: dict) -> str:
     sources = []
-    for key in ("_full_parcel_response", "_full_flood_response", "_full_terrain_response", "_full_landcover_response", "_full_drainage_response", "_full_ebr_drainage_response"):
+    for key in ("_full_parcel_response", "_full_acs_response", "_full_flood_response", "_full_terrain_response", "_full_landcover_response", "_full_drainage_response", "_full_ebr_drainage_response"):
         resp = record.get(key)
         if resp:
             sources.append(resp)
