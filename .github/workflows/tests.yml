@@ -1,0 +1,25 @@
+name: Regression tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # No requirements.txt — every module here uses only the Python
+      # standard library (urllib, json, math, ...), by design.
+      - name: Run regression suite
+        run: python -m unittest tests.regression.test_reference_properties -v
+        # These tests make real live calls to FEMA/USGS/NOAA/EBR Parish
+        # APIs (no mocking, per this repo's own rule against faking
+        # government data — see tests/regression/test_reference_properties.py).
+        # A failure here can mean a real regression OR a transient
+        # upstream outage; check which before assuming the code broke.

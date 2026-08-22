@@ -100,3 +100,10 @@ product**, not an official flood determination, engineering inspection,
 appraisal, insurance underwriting tool, or guarantee of future loss. See
 `docs/disclaimer.md` and `docs/claims_matrix.md` before writing any
 marketing copy or UI text.
+
+## License
+
+All rights reserved. This repository has no open-source license — the
+code, data-source integrations, and rules/recommendation logic are
+proprietary. Viewing is fine; reuse, redistribution, or derivative works
+are not permitted without the owner's explicit written permission.
